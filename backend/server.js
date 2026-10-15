@@ -2,10 +2,15 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const { Pool } = require('pg');
+const pool = require('./db');
+const authRoutes = require('./routes/auth');
+
+if (!process.env.JWT_SECRET) {
+  console.error('JWT_SECRET is missing in backend/.env');
+  process.exit(1);
+}
 
 const app = express();
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 app.use(helmet());
 app.use(cors());
@@ -20,6 +25,8 @@ app.get('/api/health', async (req, res) => {
     res.status(500).json({ status: 'error', db: 'down' });
   }
 });
+
+app.use('/api/auth', authRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, (err) => {
